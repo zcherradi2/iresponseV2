@@ -1,0 +1,4 @@
+## in The cron 
+0 * * * * java -Dfile.encoding=UTF8 -jar /usr/iresponse/app/api/iresponse_services.jar eyJ1c2VyLWlkIjoxLCJlbmRwb2ludCI6IlNlcnZlcnMiLCJhY3Rpb24iOiJjaGVja1NlcnZlcnNDb25uZWN0aXZpdHkiLCJwYXJhbWV0ZXJzIjpbXX0=
+*/15 * * * * java -Dfile.encoding=UTF8 -jar /usr/iresponse/app/api/iresponse_services.jar eyJ1c2VyLWlkIjoxLCJlbmRwb2ludCI6IkFmZmlsaWF0ZSIsImFjdGlvbiI6ImdldENvbnZlcnNpb25zIiwicGFyYW1ldGVycyI6eyJhZmZpbGlhdGUtbmV0d29ya3MtaWRzIjpbXSwicGVyaW9kIjoidGhpcy1tb250aCJ9fQ==
+0 */4 * * * java -Dfile.encoding=UTF8 -jar /usr/iresponse/app/api/iresponse_services.jar eyJ1c2VyLWlkIjoxLCJlbmRwb2ludCI6IlRvb2xzIiwiYWN0aW9uIjoiY29sbGVjdExlYWRlcnMiLCJwYXJhbWV0ZXJzIjp7InBlcmlvZCI6InRvZGF5In19

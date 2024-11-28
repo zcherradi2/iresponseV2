@@ -1,0 +1,13 @@
+[0;1;32m●[0m firewalld.service - firewalld - dynamic firewall daemon
+     Loaded: loaded (]8;;file://vmi2114548.contaboserver.net/usr/lib/systemd/system/firewalld.service/usr/lib/systemd/system/firewalld.service]8;;; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)
+     Active: [0;1;32mactive (running)[0m since Sun 2024-09-08 00:10:58 CEST; 229ms ago
+       Docs: ]8;;man:firewalld(1)man:firewalld(1)]8;;
+   Main PID: 1408 (firewalld)
+      Tasks: 1 (limit: 36040)
+     Memory: 26.9M
+        CPU: 290ms
+     CGroup: /system.slice/firewalld.service
+             └─[0;38;5;245m1408 /usr/bin/python3 -s /usr/sbin/firewalld --nofork --nopid[0m
+
+Sep 08 00:10:58 vmi2114548.contaboserver.net systemd[1]: Starting firewalld - dynamic firewall daemon...
+Sep 08 00:10:58 vmi2114548.contaboserver.net systemd[1]: Started firewalld - dynamic firewall daemon.

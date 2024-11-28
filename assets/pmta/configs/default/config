@@ -1,0 +1,12 @@
+############################################################################
+########################### PMTA config ###############################
+############################################################################
+
+########## Parameters section
+http-mgmt-port 3128
+##########http-access 5.253.247.138 monitor
+http-access 0/0 monitor
+include /etc/pmta/parameters/*.conf
+
+########## Virtual MTAs section
+include /etc/pmta/vmtas/*.conf

@@ -1,0 +1,9 @@
+{
+    "key" : "clients",
+    "driver": "pgsql",
+    "host": "172.81.63.236",
+    "port": "5432",
+    "database": "ir_clients",
+    "username": "admin",
+    "password": "Sapp123"
+}

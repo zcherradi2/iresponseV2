@@ -1,0 +1,30 @@
+{
+    "framework": "IR Framework",
+    "version": "1.1",
+    "author": "Amine Idrissi",
+    "year": "2019",
+    "application": {
+        "name": "MasterPiece",
+        "company": "Ousel",
+        "version": "2.0",
+        "default_db": "system",
+        "pmta_http_port": "8080",
+        "upload_center_id": "",
+        "new_tab_open": "same",
+        "webmail_server_id": "",
+        "pmta_config_type": "custom",
+        "tracking_enc_key": "%86Xvj&fmAW4L!S7cvWuNK4W36F_VBe6_FkYX4h^ah9&9j?D6hw2E$J*!anA7Bac",
+        "bit_shortlinks_user": "",
+        "bit_shortlinks_api": "",
+        "sidebar_behaviour": "expended",
+        "base_url": "http:\/\/nano /usr/gm/config/application.json",
+        "gcloud_bucket_size": "15",
+        "gcloud_object_size": "15",
+        "ssl_email": "",
+        "lamda_timer": "5m",
+        "suppression_timer": "",
+        "bit_shortlinks_token": "",
+        "pmta_firewall_ips_domains": "",
+        "optizmo_token": ""
+    }
+}

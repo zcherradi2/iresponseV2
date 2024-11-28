@@ -1,0 +1,124 @@
+apt update -y;exit
+[?2004h[root@vmi2114548 ~]# apt update -y;exit
+[?2004l-bash: apt: command not found
+logout
+
+apt remove -y apache2 opendkim opendkim-tools ufw postfix php*;exit
+[?2004h[root@vmi2114548 ~]# apt remove -y apache2 opendkim opendkim-tools ufw postfix php*;exit
+[?2004l-bash: apt: command not found
+logout
+
+apt update -y;exit
+[?2004h[root@vmi2114548 ~]# apt update -y;exit
+[?2004l-bash: apt: command not found
+logout
+
+apt -y reinstall policykit-1;exit
+[?2004h[root@vmi2114548 ~]# apt -y reinstall policykit-1;exit
+[?2004l-bash: apt: command not found
+logout
+
+apt-get install -y  openssh-client gdb nano wget apache2 zip unzip python3 python3-pip apt-utils cron perl ;exit
+[?2004h[root@vmi2114548 ~]# apt-get install -y  openssh-client gdb nano wget apache2 zip unzip python3 python3-pip apt-utils cron perl ;exit
+[?2004l-bash: apt-get: command not found
+logout
+
+apt install -y software-properties-common;exit
+[?2004h[root@vmi2114548 ~]# apt install -y software-properties-common;exit
+[?2004l-bash: apt: command not found
+logout
+
+add-apt-repository -y ppa:ondrej/php;exit
+[?2004h[root@vmi2114548 ~]# add-apt-repository -y ppa:ondrej/php;exit
+[?2004l-bash: add-apt-repository: command not found
+logout
+
+apt install -y php7.4  php7.4-cli php7.4-gd php7.4-curl php7.4-pgsql php7.4-ldap php7.4-zip php7.4-fileinfo php7.4-common php7.4-pdo php7.4-mbstring php7.4-soap php7.4-zip php7.4-opcache python3;exit
+[?2004h[root@vmi2114548 ~]# apt install -y php7.4  php7.4-cli php7.4-gd php7.4-curl php7.4-pgsql php7.4-ldap php7.4-zip php7.4-fileinfo php7.4-common php7.4-pdo php7.4-mbstring php7.4-soap php7.4-zip php7.4-opcache python3;exit
+[?2004l-bash: apt: command not found
+logout
+
+a2enmod rewrite;exit
+[?2004h[root@vmi2114548 ~]# a2enmod rewrite;exit
+[?2004l-bash: a2enmod: command not found
+logout
+
+systemctl reload apache2;exit
+[?2004h[root@vmi2114548 ~]# systemctl reload apache2;exit
+[?2004l[0;1;31mFailed to reload apache2.service: Unit apache2.service not found.[0m
+logout
+
+systemctl restart apache2 ;exit
+[?2004h[root@vmi2114548 ~]# systemctl restart apache2 ;exit
+[?2004l[0;1;31mFailed to restart apache2.service: Unit apache2.service not found.[0m
+logout
+
+org.apache.log4j.Logger@74294adb
+org.apache.log4j.Logger@74294adb
+org.apache.log4j.Logger@74294adb
+org.apache.log4j.Logger@74294adb
+a2ensite vhosts;exit
+[?2004h[root@mail ~]# a2ensite vhosts;exit
+[?2004l-bash: a2ensite: command not found
+logout
+
+a2enmod proxy proxy_http proxy_balancer lbmethod_byrequests;exit
+[?2004h[root@mail ~]# a2enmod proxy proxy_http proxy_balancer lbmethod_byrequests;exit
+[?2004l-bash: a2enmod: command not found
+logout
+
+systemctl restart apache2;exit
+[?2004h[root@mail ~]# systemctl restart apache2;exit
+[?2004l[0;1;31mFailed to restart apache2.service: Unit apache2.service not found.[0m
+logout
+
+crontab /home/cron;exit
+[?2004h[root@mail ~]# crontab /home/cron;exit
+[?2004llogout
+
+rm -rf /home/cron;exit
+[?2004h[root@mail ~]# rm -rf /home/cron;exit
+[?2004llogout
+
+a2enmod headers;exit
+[?2004h[root@mail ~]# a2enmod headers;exit
+[?2004l-bash: a2enmod: command not found
+logout
+
+systemctl  restart crond;exit
+[?2004h[root@mail ~]# systemctl  restart crond;exit
+[?2004llogout
+
+systemctl restart apache2;exit
+[?2004h[root@mail ~]# systemctl restart apache2;exit
+[?2004l[0;1;31mFailed to restart apache2.service: Unit apache2.service not found.[0m
+logout
+
+useradd -m -p "ghvghvhghvghvhgdasvgsadgdasvgsad" -G "$group" "pmta";exit
+[?2004h[root@mail ~]# useradd -m -p "ghvghvhghvghvhgdasvgsadgdasvgsad" -G "$group" "pmta";exit
+[?2004llogout
+
+service pmta stop && service pmtahttp stop;exit
+[?2004h[root@mail ~]# service pmta stop && service pmtahttp stop;exit
+[?2004lRedirecting to /bin/systemctl stop pmta.service
+[0;1;31mFailed to stop pmta.service: Unit pmta.service not loaded.[0m
+logout
+
+apt -y remove PowerMTA*;exit
+[?2004h[root@mail ~]# apt -y remove PowerMTA*;exit
+[?2004l-bash: apt: command not found
+logout
+
+service pmta restart;exit
+[?2004h[root@mail ~]# service pmta restart;exit
+[?2004lRedirecting to /bin/systemctl restart pmta.service
+[0;1;31mFailed to restart pmta.service: Unit pmta.service not found.[0m
+logout
+
+service pmtahttp restart;exit
+[?2004h[root@mail ~]# service pmtahttp restart;exit
+[?2004lRedirecting to /bin/systemctl restart pmtahttp.service
+[0;1;31mFailed to restart pmtahttp.service: Unit pmtahttp.service not found.[0m
+logout
+
+Installing PowerMTA completed !
