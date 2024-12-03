@@ -6577,3 +6577,29 @@ Caused by: java.net.ConnectException: Connection refused (Connection refused)
 	at core.Application.controller(Application.java:101)
 	at App.main(App.java:26)
 
+[ 2024-11-28 01:55:53 ] ERROR in tech.iresponse.l.b : org.json.JSONException: JSONObject["relationship"] not found.
+[ 2024-11-28 01:56:20 ] ERROR in tech.iresponse.l.b : org.json.JSONException: JSONObject["relationship"] not found.
+[ 2024-12-02 21:28:17 ] ERROR in logging.Loggers : 2: No such file
+	at com.jcraft.jsch.ChannelSftp.throwStatusError(ChannelSftp.java:2873)
+	at com.jcraft.jsch.ChannelSftp._put(ChannelSftp.java:594)
+	at com.jcraft.jsch.ChannelSftp.put(ChannelSftp.java:540)
+	at com.jcraft.jsch.ChannelSftp.put(ChannelSftp.java:492)
+	at remote.SSHConnector.uploadContent(SSHConnector.java:163)
+	at helpers.scripts.installationUbuntu.installDkimDmarc(installationUbuntu.java:265)
+	at webservices.Servers.installServer(Servers.java:396)
+	at webservices.Servers.controller(Servers.java:797)
+	at core.Application.controller(Application.java:101)
+	at App.main(App.java:26)
+
+[ 2024-12-02 21:48:05 ] ERROR in logging.Loggers : 2: No such file
+	at com.jcraft.jsch.ChannelSftp.throwStatusError(ChannelSftp.java:2873)
+	at com.jcraft.jsch.ChannelSftp._put(ChannelSftp.java:594)
+	at com.jcraft.jsch.ChannelSftp.put(ChannelSftp.java:540)
+	at com.jcraft.jsch.ChannelSftp.put(ChannelSftp.java:492)
+	at remote.SSHConnector.uploadContent(SSHConnector.java:163)
+	at helpers.scripts.installationUbuntu.installDkimDmarc(installationUbuntu.java:265)
+	at webservices.Servers.installServer(Servers.java:396)
+	at webservices.Servers.controller(Servers.java:797)
+	at core.Application.controller(Application.java:101)
+	at App.main(App.java:26)
+

@@ -1424,6 +1424,7 @@ class Pmta extends Base
 
         $servers = $this->app->utils->arrays->get($parameters,'servers');
         $smtps = array_filter(explode(PHP_EOL,$this->app->utils->arrays->get($parameters,'smtps','')));
+        $separator = ",";
         if(count($servers) == 0){
             Page::printApiResults(500,'No servers found !');
         }
@@ -1457,9 +1458,9 @@ class Pmta extends Base
         
         foreach ($smtps as $smtp)
         {
-            $smtpParts = array_filter(explode(' ',$smtp));
+            $smtpParts = array_filter(explode($separator,$smtp));
             
-            if(count($smtpParts) == 4)
+            if(count($smtpParts) >= 4)
             {
                 $smtpsList[] = [
                     'host' => $smtpParts[0],
@@ -1471,6 +1472,7 @@ class Pmta extends Base
         }
 
         $username = Authentication::getAuthenticatedUser()->getEmail();
+        $numCreated = 0;
         foreach ($smtpsList as $smtp)
         {
             $name = $server['main_ip']."_smtp_".explode('@',$smtp['username'])[0]."_".$smtp['host'] ;
@@ -1512,16 +1514,23 @@ class Pmta extends Base
             $res0 = $sshConnector->cmd($command,true);
 
             $result = $newVmta->insert();
-            if($result <= -1)
+            if($result != -1)
             {
-                Page::printApiResults(403,"failed");
+                // Page::printApiResults(403,"failed");
+                $numCreated += 1;
             }
             // $newVmta->setServer
             
 
 
         }
-        Page::printApiResults(200,'successfully created');
+        if($numCreated !=0){
+            $sshConnector->cmd("sudo /etc/init.d/pmta reload",true);
+            $sshConnector->cmd("sudo /etc/init.d/pmta restart",true);
+            Page::printApiResults(200,"successfully created $numCreated/".count($smtpsList));
+        }else{
+            Page::printApiResults(403,"failed creating smtps, tell ziko");
+        }
         // $currentDate = new DateTime();
         // Page::printApiResults(403,"h".$name);
 
