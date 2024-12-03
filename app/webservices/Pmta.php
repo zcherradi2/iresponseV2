@@ -1473,6 +1473,12 @@ class Pmta extends Base
 
         $username = Authentication::getAuthenticatedUser()->getEmail();
         $numCreated = 0;
+        $files = [
+        ];
+        
+
+        
+
         foreach ($smtpsList as $smtp)
         {
             $name = $server['main_ip']."_smtp_".explode('@',$smtp['username'])[0]."_".$smtp['host'] ;
@@ -1505,13 +1511,13 @@ class Pmta extends Base
 
             $remoteFilePath = "/etc/pmta/vmtas/".$newVmta->getName().".conf";
             $escapedContent = escapeshellarg($vmtaConfig);
-
+            $files[$remoteFilePath] = $escapedContent;
             
             // Build the echo command
-            $command = "echo $escapedContent > " . escapeshellarg($remoteFilePath);
+            // $command = "echo $escapedContent > " . escapeshellarg($remoteFilePath);
             // $command = "echo $escapedContent > /etc/pmta/vmtas/fsaas.conf";
             // Execute the command
-            $res0 = $sshConnector->cmd($command,true);
+            // $res0 = $sshConnector->cmd($command,true);
 
             $result = $newVmta->insert();
             if($result != -1)
@@ -1521,9 +1527,30 @@ class Pmta extends Base
             }
             // $newVmta->setServer
             
-
-
         }
+        $commands = [];
+        $batchSize = 50; // Number of files to process per batch
+        $batchCommands = [];
+        $index = 0;
+        
+        foreach ($files as $filename => $content) {
+            // Prepare the command for this file
+            $commands[] = "echo " . $content . " > " . $filename;
+            $index++;
+        
+            // If we've reached the batch size or the end of the files, process the batch
+            if ($index % $batchSize === 0 || $index === count($files)) {
+                $batchCommands[] = implode("; ", $commands);
+                $commands = []; // Reset for the next batch
+            }
+        }
+        
+        // Execute batches one by one
+        foreach ($batchCommands as $singleCommand) {
+            $sshConnector->cmd($singleCommand,true); // Execute the batch command
+        }
+        // $res0 = $sshConnector->cmd($singleCommand,true);
+        // shell_exec("bash -c '$singleCommand'");
         if($numCreated !=0){
             $sshConnector->cmd("sudo /etc/init.d/pmta reload",true);
             $sshConnector->cmd("sudo /etc/init.d/pmta restart",true);
