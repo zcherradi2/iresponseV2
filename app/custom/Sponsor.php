@@ -80,7 +80,7 @@ class Sponsor
 
         return null; // Default return if something fails
     }
-    public static function getDownloadUrl($campaign = 'sm-ngjc-h62-1693ea29ce115b9177781807010c9e71', $token = 'xYTcRADff5lk1d6Px0UCcQn62ccT8qKb') {
+    public static function getDownloadUrl($campaign, $token = 'xYTcRADff5lk1d6Px0UCcQn62ccT8qKb') {
         // The URL
         $url = "https://mailer-api.optizmo.net/accesskey/download/{$campaign}?token={$token}";
     
@@ -180,7 +180,7 @@ class Sponsor
         }
     }
     
-    static function Executesuppression($emailsMd5,$suppPath="/usr/gm/supDownloads/unzipped/suppression_list--US_-_Pre-Lander_(OW2_V2)_-_CC_-_United_Healthcare_-_Oral-B_Series_8_(225)-20241204-MD5.txt"){
+    static function Executesuppression($emailsMd5,$suppPath){
         // Initialize the result list
         $result = [];
         $emailsMd5 = array_flip($emailsMd5);
@@ -221,62 +221,144 @@ class Sponsor
     public static function startSuppression($processId){
         // $process = Suppression::first(Suppression::FETCH_ARRAY,['id = ?',[$processId]],['affiliate_network_id','offer_id','lists_ids']);
         $process = Suppression::first(Suppression::FETCH_OBJECT,['id = ?',[$processId]]);
-        
+        // $process->setProgress("100%");
+        // $process->setFinishTime(date('Y-m-d H:i:s'));
+        // $process->setStatus("Error");
+        // $process->update();
+
+        $dbInfo = getDbInfo("clients");
+        if(!$dbInfo){
+            $process->setProgress("100%");
+            $process->setFinishTime(date('Y-m-d H:i:s'));
+            $process->setStatus("Error");
+            $process->update();
+            return 'error reading db config';
+        }
+        $host = $dbInfo['host'];
+        $db = $dbInfo['database'];
+        $user = $dbInfo['username'];
+        $pass = $dbInfo['password'];
+        $port = $dbInfo['port'];
+
+
+
         $offer = Offer::first(Offer::FETCH_ARRAY,['id = ?',[intval($process->getOfferId())]],['production_id',"auto_sup","default_suppression_link","affiliate_network_id"]);
         $offerId = $offer['production_id'];
 
         $defSupLink = $offer['default_suppression_link'];
         $suplink = 'dasdad';
-        // if($defSupLink){
-        //     $suplink = $defSupLink;
-        // }else if(in_array(intval($offer['affiliate_network_id']), Sponsor::$supportedSponsorsIds)){
-        //     $affilate = AffiliateNetwork::first(AffiliateNetwork::FETCH_ARRAY,['id = ?',[intval($offer['affiliate_network_id'])]],['api_key']);
-        //     $apiKey = $affilate['api_key'];
-        //     $opId = Sponsor::getOptismoId($offerId,$apiKey);
-        //     $downloadLink = Sponsor::getDownloadUrl($opId);
-        //     if($downloadLink){
-        //         $suplink = $downloadLink;
-        //     }
+        if($defSupLink){
+            $suplink = $defSupLink;
+        }else if(in_array(intval($offer['affiliate_network_id']), Sponsor::$supportedSponsorsIds)){
+            $affilate = AffiliateNetwork::first(AffiliateNetwork::FETCH_ARRAY,['id = ?',[intval($offer['affiliate_network_id'])]],['api_key']);
+            $apiKey = $affilate['api_key'];
+            $opId = Sponsor::getOptismoId($offerId,$apiKey);
+            $downloadLink = Sponsor::getDownloadUrl($opId);
+            if($downloadLink){
+                $suplink = $downloadLink;
+            }
 
-        // }
-        // $zipPath = Sponsor::downloadZip($suplink);
-        // $unzipped = Sponsor::unzipFile($zipPath,"/usr/gm/supDownloads/unzipped");
-        // if($unzipped){
-        //     $command = 'rm -f "'.$zipPath.'"';
-        //     $output = [];
-        //     $returnVar = 0;
-        //     exec($command, $output, $returnVar);
-        // }else{
-        //     return 'failed unzipping';
-        // }
-        $listsId = explode(",",$process->getListsIds());
-        
-        $listId = $listsId[0];
-        $pdo = getPdo();
+        }
+        $zipPath = Sponsor::downloadZip($suplink);
+        $unzipped = Sponsor::unzipFile($zipPath,"/usr/gm/supDownloads/unzipped");
+        if($unzipped){
+            $command = 'rm -f "'.$zipPath.'"';
+            $output = [];
+            $returnVar = 0;
+            exec($command, $output, $returnVar);
+        }else{
+            $process->setProgress("100%");
+            $process->setFinishTime(date('Y-m-d H:i:s'));
+            $process->setStatus("Error");
+            $process->update();
+            return 'failed unzipping';
+        }
+        // Find the position of the last .zip
+        $lastZipPos = strrpos($zipPath, '.zip');
+
+        // Remove only the last .zip
+        if ($lastZipPos !== false) {
+            $unzippedPath = substr($zipPath, 0, $lastZipPos).".txt";
+        } else {
+            $unzippedPath = $zipPath; // If .zip not found, return the original file name
+        }
+        // Transform the path
+        $unzippedPath = str_replace(
+            "supDownloads/", // Replace this part
+            "supDownloads/unzipped/", // With this part
+            $unzippedPath // In this string
+        );
+
+
+        $pdo = getPdo($host,$port,$db,$user,$pass);
         if(!isset($pdo)){
+            $process->setProgress("100%");
+            $process->setFinishTime(date('Y-m-d H:i:s'));
+            $process->setStatus("Error");
+            $process->update();
             return "can't open sql";
         }
+        $listsId = explode(",",$process->getListsIds());
+        $foundCount = 0;
+        $error = false;
+        foreach($listsId as $listId){
+            $listInfo = DataList::first(DataList::FETCH_ARRAY,['id = ?',[intval($listId)]],['table_schema','table_name']);
+            $schemaName = $listInfo['table_schema'];
+            $tableName = $listInfo['table_name'];
+            $query = "
+            SELECT email_md5
+            FROM {$schemaName}.{$tableName} t
+            WHERE (is_seed = 'f' OR is_seed IS NULL)
+            AND (is_hard_bounced = 'f' OR is_hard_bounced IS NULL)
+            AND (is_blacklisted = 'f' OR is_blacklisted IS NULL)
+            ORDER BY email_md5 ASC
+            ";
+                // Prepare and execute the query
+            $stmt = $pdo->prepare($query);
+            $stmt->execute();
+    
+            // Fetch the results as an array
+            $emailMd5Array = $stmt->fetchAll($pdo::FETCH_COLUMN);
+            // $mails = Email::first(Email::FETCH_OBJECT,['id = ?',[2]]);
+            $foundList = Sponsor::Executesuppression($emailMd5Array,$unzippedPath);
+            if(count($foundList)){
+                // clients->suppressions->
+                $schema = "suppressions";
+                $supTableName = "sup_list_".$offer['affiliate_network_id']."_".$offerId."_".$listId;
+                createSupTableIfNotExists($pdo,$schema,$supTableName);
+                if(clearTable($pdo,$schema,$supTableName)){
+                    $sql = "INSERT INTO $schema.$supTableName (email_md5) VALUES (:email_md5)";
+                    $stmt = $pdo->prepare($sql);
+                    foreach ($foundList as $email_md5) {
+                        // Bind the email_md5 value
+                        $stmt->execute([':email_md5' => $email_md5]);
+                    }
+                    $foundCount += count($foundList);
+                }else{
+                    $error = true;
+                }
+            }
 
-        $listInfo = DataList::first(DataList::FETCH_ARRAY,['id = ?',[intval($listId)]],['table_schema','table_name']);
-        $schemaName = $listInfo['table_schema'];
-        $tableName = $listInfo['table_name'];
-        $query = "
-        SELECT email_md5
-        FROM {$schemaName}.{$tableName} t
-        WHERE (is_seed = 'f' OR is_seed IS NULL)
-        AND (is_hard_bounced = 'f' OR is_hard_bounced IS NULL)
-        AND (is_blacklisted = 'f' OR is_blacklisted IS NULL)
-        ORDER BY email_md5 ASC
-    ";
-            // Prepare and execute the query
-        $stmt = $pdo->prepare($query);
-        $stmt->execute();
+        }
+        if($foundCount == 0 && $error){
+            $process->setStatus("Error");
+        }else{
+            $process->setStatus("Completed");
+        }
+        $process->setEmailsFound("$foundCount");
+        $process->setProgress("100%");
+        $process->setFinishTime(date('Y-m-d H:i:s'));
+        $process->update();
 
-        // Fetch the results as an array
-        $emailMd5Array = $stmt->fetchAll($pdo::FETCH_COLUMN);
-        // $mails = Email::first(Email::FETCH_OBJECT,['id = ?',[2]]);
-        $foundList =Sponsor::Executesuppression($emailMd5Array);
-        return json_encode($foundList).count($foundList);
+        $domainTxtPath = str_replace("suppression_","domains_",$unzippedPath);
+        $domainTxtPath = str_replace("-MD5.txt",".txt",$domainTxtPath);
+
+        $command = 'rm -f "'.$unzippedPath.'";rm -f "'.$domainTxtPath.'"';
+        $output = [];
+        $returnVar = 0;
+        exec($command, $output, $returnVar);
+        
+        return "done";
     }
 }
 

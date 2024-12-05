@@ -216,13 +216,18 @@ class Affiliate extends Base
                     # call iresponse api
                     //Api::call('Affiliate','startSuppression',['process-id' => $process->insert()],true);
                     $processId = $process->insert();
-                    Api::callh1('Affiliate','startSuppression',['process-id' => $processId],true);
+                    // Api::callh1('Affiliate','startSuppression',['process-id' => $processId],true);
                 }
             }
         }
         if($processId != -1){
             $res = Sponsor::startSuppression($processId);
-            Page::printApiResults(200,"Suppression process($res) started");
+            // Page::printApiResults(200,"debug: $res");
+            if($res=="done"){
+                Page::printApiResults(200,"Suppression process finished");
+            } else{
+                Page::printApiResults(500,"Suppression process failed, response: $res");
+            }
         }
         Page::printApiResults(200,'Suppression process(es) started');
     }
