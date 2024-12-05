@@ -21,6 +21,8 @@ use IR\App\Helpers\Api as Api;
 use IR\App\Models\Affiliate\Offer as Offer;
 use IR\App\Models\Affiliate\Suppression as Suppression;
 
+use IR\Custom\Sponsor as Sponsor;
+
 /**
  * @name Affiliate
  * @description Affiliate WebService
@@ -187,7 +189,7 @@ class Affiliate extends Base
         {
             Page::printApiResults(500,'Please provide at least one list !');
         }
-
+        $processId = -1;
         foreach ($offerIds as $offerId)
         {
             $supp = Suppression::first(Suppression::FETCH_ARRAY,['offer_id = ? AND status = ?',[$offerId,'In Progress']],['id']);
@@ -213,11 +215,15 @@ class Affiliate extends Base
 
                     # call iresponse api
                     //Api::call('Affiliate','startSuppression',['process-id' => $process->insert()],true);
-                    Api::callh1('Affiliate','startSuppression',['process-id' => $process->insert()],true);
+                    $processId = $process->insert();
+                    Api::callh1('Affiliate','startSuppression',['process-id' => $processId],true);
                 }
             }
         }
-        
+        if($processId != -1){
+            $res = Sponsor::startSuppression($processId);
+            Page::printApiResults(200,"Suppression process($res) started");
+        }
         Page::printApiResults(200,'Suppression process(es) started');
     }
     

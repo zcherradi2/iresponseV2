@@ -3,13 +3,22 @@ declare(strict_types=1);
 
 namespace IR\Custom;
 
+use Exception;
+use IR\App\Models\Affiliate\Suppression as Suppression;
+use IR\App\Models\Affiliate\Offer as Offer;
+use IR\App\Models\Affiliate\AffiliateNetwork as AffiliateNetwork;
+use IR\App\Models\Lists\SuppressionEmail as SuppressionEmail;
+use IR\App\Models\Lists\Email as Email;
+use IR\App\Models\Lists\DataList as DataList;
 
+include 'CustomSql.php';
 // if (!defined('IR_START')) {
 //     exit('<pre>No direct script access allowed</pre>');
 // }
 
 class Sponsor
 {
+    static public $supportedSponsorsIds = [5];
     public static function getOffer($id,$apiKey,$type)
     {
         // return ['data'=>'dsa'];
@@ -33,6 +42,241 @@ class Sponsor
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         $response = curl_exec($ch);
         return json_decode($response,true);
+    }
+
+    public static function getOptismoId($offerId, $apiKey = 'mD1hn1vTBujuUcQmXmz5w') {
+        $url = "https://api.eflow.team/v1/affiliates/offers/{$offerId}";
+        
+        // Set up headers
+        $headers = [
+            "X-Eflow-API-Key: {$apiKey}",
+            "Content-Type: application/json"
+        ];
+        
+        // Initialize cURL
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    
+        // Execute the request
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        try {
+            // Check response and parse
+            if ($httpCode === 200) {
+                $data = json_decode($response, true);
+                if (isset($data['relationship']['integrations']['optizmo']['mailer_access_key'])) {
+                    $key = $data['relationship']['integrations']['optizmo']['mailer_access_key'];
+                    $parts = explode('/', $key);
+                    return end($parts); // Get the last part of the string
+                }
+            }
+            // Code that may throw an exception
+        } catch (Exception $e) {
+            return null;
+            // Code to handle the exception
+        }
+
+        return null; // Default return if something fails
+    }
+    public static function getDownloadUrl($campaign = 'sm-ngjc-h62-1693ea29ce115b9177781807010c9e71', $token = 'xYTcRADff5lk1d6Px0UCcQn62ccT8qKb') {
+        // The URL
+        $url = "https://mailer-api.optizmo.net/accesskey/download/{$campaign}?token={$token}";
+    
+        // Initialize cURL
+        $ch = curl_init($url);
+    
+        // Set cURL options
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    
+        // Execute the request
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+    
+        // Check for success
+        if ($httpCode === 200) {
+            $data = json_decode($response, true); // Decode JSON response
+    
+            if (isset($data['download_link'])) {
+                return $data['download_link'];
+            } else {
+                return ''; // Key not found
+            }
+        } else {
+            // Handle error
+            return '';
+        }
+    }
+    
+    public static function downloadZip($zipFileUrl, $downloadPath = '/usr/gm/supDownloads', $timeout = 30) {
+        // Set the download path and ensure it exists
+        if (!is_dir($downloadPath)) {
+            mkdir($downloadPath, 0777, true); // Create the directory if it doesn't exist
+        }
+        // Initialize cURL session
+        $ch = curl_init($zipFileUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+    
+        // Execute the request
+        $response = curl_exec($ch);
+    
+        // Get HTTP status code
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+        $headers = substr($response, 0, $headerSize);
+        $body = substr($response, $headerSize);
+        curl_close($ch);
+    
+        if ($httpCode !== 200) {
+            echo "Failed to download the file. HTTP Status Code: $httpCode\n";
+            return null;
+        }
+    
+        // Parse headers to find the filename
+        preg_match('/filename="?([^"]+)"?/', $headers, $matches);
+        $filename = $matches[1] ?? 'downloaded.zip';
+    
+        // Sanitize and set the full file path
+        $filename = basename($filename); // Ensure it's a safe filename
+        $filePath = $downloadPath . DIRECTORY_SEPARATOR . $filename;
+    
+        // Save the file
+        file_put_contents($filePath, $body);
+    
+        // echo "File downloaded successfully as $filePath\n";
+        return $filePath;
+    }
+    public static function unzipFile($zipFilePath, $extractToPath) {
+        // Ensure the ZIP file exists
+        if (!file_exists($zipFilePath)) {
+            echo "Error: ZIP file not found: $zipFilePath\n";
+            return false;
+        }
+    
+        // Ensure the extraction directory exists
+        if (!is_dir($extractToPath)) {
+            mkdir($extractToPath, 0777, true);
+        }
+    
+        // Build the unzip command
+        $command = 'unzip -o "' . $zipFilePath . '" -d "'. $extractToPath.'"';
+    
+        // Execute the command
+        $output = [];
+        $returnVar = 0;
+        exec($command, $output, $returnVar);
+    
+        // Check the result
+        if ($returnVar === 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    static function Executesuppression($emailsMd5,$suppPath="/usr/gm/supDownloads/unzipped/suppression_list--US_-_Pre-Lander_(OW2_V2)_-_CC_-_United_Healthcare_-_Oral-B_Series_8_(225)-20241204-MD5.txt"){
+        // Initialize the result list
+        $result = [];
+        $emailsMd5 = array_flip($emailsMd5);
+        // Check if the suppression file exists
+        if (!file_exists($suppPath)) {
+            return [];
+        }
+        // Read the suppression file into an array, each line is one MD5 hash
+        $suppMd5List = [];
+        $handle = fopen($suppPath, "r");
+        if ($handle) {
+            while (($line = fgets($handle)) !== false) {
+                $line = trim($line);
+                if (isset($emailsMd5[$line])) {
+                    $result[] = $line;
+                }
+            }
+            fclose($handle);
+        } else {
+            // Handle error opening the file
+            return [];
+        }
+
+        // Convert the suppression list into a set (array with keys for quick lookup)
+        // $suppMd5Set = array_flip($suppMd5List);
+
+        // // Check each email MD5 against the suppression set
+        // foreach ($emailsMd5 as $emailMd5) {
+        //     if (isset($suppMd5Set[$emailMd5])) {
+        //         // Add to result if it exists in the suppression set
+        //         $result[] = $emailMd5;
+        //     }
+        // }
+
+        // Return the result list of matching MD5s
+        return $result;
+    }
+    public static function startSuppression($processId){
+        // $process = Suppression::first(Suppression::FETCH_ARRAY,['id = ?',[$processId]],['affiliate_network_id','offer_id','lists_ids']);
+        $process = Suppression::first(Suppression::FETCH_OBJECT,['id = ?',[$processId]]);
+        
+        $offer = Offer::first(Offer::FETCH_ARRAY,['id = ?',[intval($process->getOfferId())]],['production_id',"auto_sup","default_suppression_link","affiliate_network_id"]);
+        $offerId = $offer['production_id'];
+
+        $defSupLink = $offer['default_suppression_link'];
+        $suplink = 'dasdad';
+        // if($defSupLink){
+        //     $suplink = $defSupLink;
+        // }else if(in_array(intval($offer['affiliate_network_id']), Sponsor::$supportedSponsorsIds)){
+        //     $affilate = AffiliateNetwork::first(AffiliateNetwork::FETCH_ARRAY,['id = ?',[intval($offer['affiliate_network_id'])]],['api_key']);
+        //     $apiKey = $affilate['api_key'];
+        //     $opId = Sponsor::getOptismoId($offerId,$apiKey);
+        //     $downloadLink = Sponsor::getDownloadUrl($opId);
+        //     if($downloadLink){
+        //         $suplink = $downloadLink;
+        //     }
+
+        // }
+        // $zipPath = Sponsor::downloadZip($suplink);
+        // $unzipped = Sponsor::unzipFile($zipPath,"/usr/gm/supDownloads/unzipped");
+        // if($unzipped){
+        //     $command = 'rm -f "'.$zipPath.'"';
+        //     $output = [];
+        //     $returnVar = 0;
+        //     exec($command, $output, $returnVar);
+        // }else{
+        //     return 'failed unzipping';
+        // }
+        $listsId = explode(",",$process->getListsIds());
+        
+        $listId = $listsId[0];
+        $pdo = getPdo();
+        if(!isset($pdo)){
+            return "can't open sql";
+        }
+
+        $listInfo = DataList::first(DataList::FETCH_ARRAY,['id = ?',[intval($listId)]],['table_schema','table_name']);
+        $schemaName = $listInfo['table_schema'];
+        $tableName = $listInfo['table_name'];
+        $query = "
+        SELECT email_md5
+        FROM {$schemaName}.{$tableName} t
+        WHERE (is_seed = 'f' OR is_seed IS NULL)
+        AND (is_hard_bounced = 'f' OR is_hard_bounced IS NULL)
+        AND (is_blacklisted = 'f' OR is_blacklisted IS NULL)
+        ORDER BY email_md5 ASC
+    ";
+            // Prepare and execute the query
+        $stmt = $pdo->prepare($query);
+        $stmt->execute();
+
+        // Fetch the results as an array
+        $emailMd5Array = $stmt->fetchAll($pdo::FETCH_COLUMN);
+        // $mails = Email::first(Email::FETCH_OBJECT,['id = ?',[2]]);
+        $foundList =Sponsor::Executesuppression($emailMd5Array);
+        return json_encode($foundList).count($foundList);
     }
 }
 
